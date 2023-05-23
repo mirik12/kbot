@@ -4,7 +4,7 @@
 
 image:
   repository: "mirik12/kbot"
-  tag: "test-bb77bb0"
+  tag: "test-1c445c1"
   os: linux
   arch: amd64
   TELE_TOKEN: TELE_TOKEN
