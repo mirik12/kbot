@@ -1,0 +1,19 @@
+# Default values for helm.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  repository: "mirik12/kbot"
+  tag: "v1.0.5-cba1bbc"
+  os: linux
+  arch: amd64
+  TELE_TOKEN: TELE_TOKEN
+replicaCount: 1
+service:
+  port: 80
+secret:
+  name: kbot
+  tokenKey: token
+  tokenName: TELE_TOKEN
+securityContext:
+  privileged: true
