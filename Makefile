@@ -1,7 +1,7 @@
 REGISTRY := ghcr.io/mirik12
 VERSION := $(shell git describe --tags --abbrev=0)-$(shell git rev-parse --short HEAD)
 TARGETOS := linux
-#linux darwin windows 1
+#linux darwin windows 12
 TARGETARCH := amd64
 #amd64 arm64
 CGO_ENABLED := 0
