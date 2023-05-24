@@ -15,7 +15,7 @@ agent any
 
         stage ("test") {
             steps {
-                make --version
+                sh "make --version"
                 echo 'TEST EXECUTION STARTED '
                 sh 'make test'
             }
