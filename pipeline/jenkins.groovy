@@ -1,47 +1,51 @@
 pipeline {
-agent any
+    agent any
+    parameters {
+        choice(name: 'OS', choices: ['linux', 'darwin', 'windows', 'all'], description: 'Pick OS')
+    }
     environment {
         REPO = "https://github.com/mirik12/kbot"
         BRANCH = 'main'
     }
     stages {
-
-        stage ("clone") {
+        stage('Example') {
             steps {
-            echo 'CLONE REPOSITORY'
+                echo "Build for platform ${params.OS}"
+                echo "Build for arch: ${params.ARCH}"
+            }
+        }
+        stage("clone") {
+            steps {
+                echo 'CLONE REPOSITORY'
                 git branch: "${BRANCH}", url: "${REPO}"
             }
-       }
-
-        stage ("test") {
+        }
+        stage("test") {
             steps {
                 sh "make --version"
                 echo 'TEST EXECUTION STARTED '
                 sh 'make test'
             }
-       }
-
-        stage ("build") {
+        }
+        stage("build") {
             steps {
                 echo 'BUILD EXECUTION STARTED '
                 sh 'make build'
             }
-       }
-
-        stage ("image") {
+        }
+        stage("image") {
             steps {
                 script {
                     echo 'TEST EXECUTION STARTED '
                     sh 'make image'
                 }
             }
-       }
-
-        stage ("push") {
+        }
+        stage("push") {
             steps {
                 script {
-                    docker.withRegistry ( '', 'dockerhub ') {
-                    sh 'make push'
+                    docker.withRegistry('', 'dockerhub') {
+                        sh 'make push'
                     }
                 }
             }
