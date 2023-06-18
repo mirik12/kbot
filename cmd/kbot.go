@@ -1,76 +1,99 @@
-/*
-Copyright © 2023 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"github.com/spf13/cobra"
-	telebot "gopkg.in/telebot.v3"
+	tgbotapi "gopkg.in/telegram-bot-api.v4"
+
+	"go.opentelemetry.io/otel"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/trace"
 )
 
 var (
-	// TeleToken bot
 	TeleToken = os.Getenv("TELE_TOKEN")
 )
 
-// kbotCmd represents the kbot command
+var (
+	tracer trace.Tracer
+)
+
+func myFunction() {
+	ctx, span := tracer.Start(context.Background(), "myFunction")
+	defer span.End()
+
+	startTime := time.Now()
+
+	// Your code
+
+	endTime := time.Now()
+	elapsed := endTime.Sub(startTime)
+
+	log.Printf("Operation took %s", elapsed)
+}
+
 var kbotCmd = &cobra.Command{
 	Use:     "kbot",
 	Aliases: []string{"start"},
-	Short:   "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short:   "A simple bot created for demonstration purposes",
+	Long: `Kbot is a simple bot created for demonstration purposes. It can respond to the following commands:
+- /start: Start the bot
+- /time: Display the current time`,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		fmt.Printf("kbot %s started", appVersion)
-		kbot, err := telebot.NewBot(telebot.Settings{
-			URL:    "",
-			Token:  TeleToken,
-			Poller: &telebot.LongPoller{Timeout: 10 * time.Second},
-		})
+		fmt.Printf("kbot %s started\n", appVersion)
+		bot, err := tgbotapi.NewBotAPI(TeleToken)
 
 		if err != nil {
 			log.Fatalf("Please check TELE_TOKEN env variable. %s", err)
 			return
 		}
 
-		kbot.Handle(telebot.OnText, func(m telebot.Context) error {
+		bot.Debug = true
 
-			log.Print(m.Message().Payload, m.Text())
-			payload := m.Message().Payload
+		log.Printf("Authorized on account %s", bot.Self.UserName)
 
-			switch payload {
-			case "hello":
-				err = m.Send(fmt.Printf("Hello I'm Kbot %s!", appVersion))
+		u := tgbotapi.NewUpdate(0)
+		u.Timeout = 60
+
+			updates, err := bot.GetUpdatesChan(u)
+
+			for update := range updates {
+				if update.Message == nil { // ignore any non-Message Updates
+					continue
+				}
+
+				switch update.Message.Text {
+				case "/start":
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Welcome! You have started the bot.")
+					bot.Send(msg)
+				case "/time":
+					currentTime := time.Now().Format("15:04:05")
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("The current time is: %s", currentTime))
+					bot.Send(msg)
+				default:
+					// do nothing
+				}
+
+				// Call function to measure execution time
+				myFunction()
 			}
-
-			return err
-
-		})
-
-		kbot.Start()
-	},
+		},
 }
 
 func init() {
 	rootCmd.AddCommand(kbotCmd)
 
-	// Here you will define your flags and configuration settings.
+	// Set up OpenTelemetry
+	ctx := context.Background()
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// kbotCmd.PersistentFlags().String("foo", "", "A help for foo")
+	tp := sdktrace.NewTracerProvider()
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// kbotCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	otel.SetTracerProvider(tp)
+
+	tracer = otel.Tracer("kbot")
 }
