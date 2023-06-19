@@ -3,3 +3,9 @@ kind: Kustomization
 
 resources:
   - grafana-datasources.yaml
+
+patches:
+  - target:
+      kind: Deployment
+      name: grafana
+    path: grafana-patch.yaml
