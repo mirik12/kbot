@@ -43,5 +43,6 @@ By following these steps, you'll deploy all necessary monitoring components in y
 ![Prometheus Graph](images/prometheusgraph.png)
 ![Loki Create](images/lokicreate.png)
 ![Query Inspector](images/queryinspector.png)
-![Query Inspector](images/CollectLogsLocally.png)
-
+![СollectLogsLocal](images/CollectLogsLocally.png)
+![Graph](images/graph.png)
+![Graph](images/image.png)
